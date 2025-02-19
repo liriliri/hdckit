@@ -1,0 +1,14 @@
+{
+  "name": "hdckit",
+  "version": "0.1.0",
+  "description": "A pure Node.js client for the OpenHarmony Device Connector",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "hdc"
+  ],
+  "author": "surunzi",
+  "license": "MIT"
+}
