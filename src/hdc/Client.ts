@@ -1,5 +1,3 @@
 export default class Client {
-  listTargets() {
-    
-  }
+  listTargets() {}
 }

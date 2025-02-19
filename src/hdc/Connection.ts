@@ -1,3 +1,1 @@
-export default class Connection {
-  
-}
+export default class Connection {}
