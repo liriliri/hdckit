@@ -16,5 +16,8 @@
   "devDependencies": {
     "@types/node": "^20.14.8",
     "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "licia": "^1.46.0"
   }
 }

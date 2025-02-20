@@ -1,4 +1,5 @@
 import Client from './hdc/Client'
+import toNum from 'licia/toNum'
 import { ClientOptions } from './ClientOptions'
 
 interface Options {
@@ -8,7 +9,7 @@ interface Options {
 }
 
 export default class Hdc {
-  static createClient(options: Options = {}): Client {
+  static createClient(options: Options = {}) {
     const opts: ClientOptions = {
       host: options.host,
       port: options.port,
