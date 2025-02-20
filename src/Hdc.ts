@@ -1,5 +1,4 @@
 import Client from './hdc/Client'
-import toNum from 'licia/toNum'
 import { ClientOptions } from './ClientOptions'
 
 interface Options {
