@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsc -w",
     "build": "tsc",
-    "format": "lsla prettier \"src/**/*.ts\" --write"
+    "format": "lsla prettier \"src/**/*.ts\" \"test/**/*.js\" --write",
+    "test:listTargets": "node ./test/listTargets.js"
   },
   "keywords": [
     "hdc"

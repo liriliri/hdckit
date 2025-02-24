@@ -1,14 +1,11 @@
 export default class ChannelHandShake {
-  length: number
   banner: string
   channelId: number
   connectKey: string
   version: string
   constructor(buf: Buffer) {
-    console.log(buf)
-    this.length = buf.readUInt32BE(0)
-    this.banner = buf.toString('utf8', 4, 16)
-    this.channelId = buf.readUInt32BE(16)
+    this.banner = buf.toString('utf8', 0, 12)
+    this.channelId = buf.readUInt32BE(12)
     this.connectKey = ''
     this.version = ''
   }
