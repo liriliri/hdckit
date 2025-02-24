@@ -24,6 +24,7 @@ export default class Connection extends Emitter {
       socket.once('connect', async () => {
         try {
           await this.handshake(connectKey)
+          resolve(null)
         } catch (e) {
           reject(e)
         }
@@ -33,6 +34,8 @@ export default class Connection extends Emitter {
         this.ended = true
         this.socket = null
       })
+    }).then(() => {
+      return this
     })
   }
   end() {
@@ -41,7 +44,15 @@ export default class Connection extends Emitter {
     }
   }
   write(data: Buffer) {
-    this.socket.write(data)
+    return new Promise((resolve, reject) => {
+      this.socket.write(data, (err) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(null)
+        }
+      })
+    })
   }
   readBytes(howMany: number) {
     const { socket } = this
@@ -88,10 +99,10 @@ export default class Connection extends Emitter {
       return this.readBytes(length)
     })
   }
-  send(data: Buffer) {
+  async send(data: Buffer) {
     const len = Buffer.alloc(4)
     len.writeUInt32BE(data.length, 0)
-    this.write(Buffer.concat([len, data]))
+    await this.write(Buffer.concat([len, data]))
   }
   private async handshake(connectKey?: string) {
     const data = await this.readValue()
@@ -104,6 +115,6 @@ export default class Connection extends Emitter {
     if (connectKey) {
       channelHandShake.connectKey = connectKey
     }
-    this.send(channelHandShake.serialize())
+    await this.send(channelHandShake.serialize())
   }
 }

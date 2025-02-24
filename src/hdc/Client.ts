@@ -1,4 +1,5 @@
 import { ClientOptions } from '../ClientOptions'
+import ListDevicesCommand from './command/ListDevicesCommand'
 import Connection from './Connection'
 
 export default class Client {
@@ -13,6 +14,8 @@ export default class Client {
     return connection.connect()
   }
   listTargets() {
-    this.connection()
+    return this.connection().then((conn) => {
+      return new ListDevicesCommand(conn).execute()
+    })
   }
 }
