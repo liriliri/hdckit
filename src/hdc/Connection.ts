@@ -21,7 +21,11 @@ export default class Connection extends Emitter {
 
     return new Promise((resolve, reject) => {
       socket.once('connect', async () => {
-        await this.handshake()
+        try {
+          await this.handshake()
+        } catch (e) {
+          reject(e)
+        }
       })
       socket.once('error', reject)
     })
