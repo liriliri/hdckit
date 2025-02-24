@@ -1,6 +1,8 @@
 import { ClientOptions } from '../ClientOptions'
 import net, { Socket } from 'node:net'
 import Emitter from 'licia/Emitter'
+import ChannelHandShake from './ChannelHandShake'
+import startWith from 'licia/startWith'
 
 const HANDSHAKE_MESSAGE = 'OHOS HDC'
 
@@ -19,8 +21,7 @@ export default class Connection extends Emitter {
 
     return new Promise((resolve, reject) => {
       socket.once('connect', async () => {
-        const data = await this.read()
-        console.log(data, data.toString())
+        await this.handshake()
       })
       socket.once('error', reject)
     })
@@ -40,5 +41,13 @@ export default class Connection extends Emitter {
       socket.once('data', resolve)
       socket.once('error', reject)
     })
+  }
+  async handshake() {
+    const data = await this.read()
+    const channelHandShake = new ChannelHandShake(data)
+    if (!startWith(channelHandShake.banner, HANDSHAKE_MESSAGE)) {
+      throw new Error('Channel Hello failed')
+    }
+    console.log('success')
   }
 }
