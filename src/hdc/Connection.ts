@@ -1,4 +1,4 @@
-import { ClientOptions } from '../ClientOptions'
+import { ClientOptions } from '../types'
 import net, { Socket } from 'node:net'
 import Emitter from 'licia/Emitter'
 import ChannelHandShake from './ChannelHandShake'
@@ -98,6 +98,21 @@ export default class Connection extends Emitter {
       const length = value.readUInt32BE(0)
       return this.readBytes(length)
     })
+  }
+  async readAll() {
+    let all = Buffer.alloc(0)
+
+    while (true) {
+      try {
+        const chunk = await this.readValue()
+        all = Buffer.concat([all, chunk])
+      } catch (e) {
+        if (this.ended) {
+          return all
+        }
+        throw e
+      }
+    }
   }
   async send(data: Buffer) {
     const len = Buffer.alloc(4)

@@ -1,5 +1,5 @@
 import Client from './hdc/Client'
-import { ClientOptions } from './ClientOptions'
+import { ClientOptions } from './types'
 
 interface Options {
   host?: string

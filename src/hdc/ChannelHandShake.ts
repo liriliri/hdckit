@@ -1,15 +1,16 @@
 export default class ChannelHandShake {
   banner: Buffer
   channelId: number
-  connectKey: string
-  version: string
+  connectKey: string = ''
   constructor(buf: Buffer) {
-    this.banner = buf.slice(0, 12)
+    this.banner = buf.subarray(0, 12)
     this.channelId = buf.readUInt32BE(12)
-    this.connectKey = ''
-    this.version = ''
   }
   serialize() {
-    return Buffer.concat([this.banner, Buffer.alloc(32)])
+    const connectKey = Buffer.alloc(32)
+    if (this.connectKey) {
+      connectKey.write(this.connectKey)
+    }
+    return Buffer.concat([this.banner, connectKey])
   }
 }
