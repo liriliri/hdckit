@@ -14,7 +14,7 @@ export default class Connection extends Emitter {
     super()
     this.options = options
   }
-  connect() {
+  connect(connectKey?: string) {
     const socket = net.connect(this.options)
     socket.setNoDelay(true)
 
@@ -23,7 +23,7 @@ export default class Connection extends Emitter {
     return new Promise((resolve, reject) => {
       socket.once('connect', async () => {
         try {
-          await this.handshake()
+          await this.handshake(connectKey)
         } catch (e) {
           reject(e)
         }
@@ -88,12 +88,22 @@ export default class Connection extends Emitter {
       return this.readBytes(length)
     })
   }
-  private async handshake() {
+  send(data: Buffer) {
+    const len = Buffer.alloc(4)
+    len.writeUInt32BE(data.length, 0)
+    this.write(Buffer.concat([len, data]))
+  }
+  private async handshake(connectKey?: string) {
     const data = await this.readValue()
     const channelHandShake = new ChannelHandShake(data)
-    if (!startWith(channelHandShake.banner, HANDSHAKE_MESSAGE)) {
+    if (
+      !startWith(channelHandShake.banner.toString('utf8'), HANDSHAKE_MESSAGE)
+    ) {
       throw new Error('Channel Hello failed')
     }
-    console.log('success')
+    if (connectKey) {
+      channelHandShake.connectKey = connectKey
+    }
+    this.send(channelHandShake.serialize())
   }
 }
