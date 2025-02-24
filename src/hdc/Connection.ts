@@ -3,12 +3,16 @@ import net, { Socket } from 'node:net'
 import Emitter from 'licia/Emitter'
 import ChannelHandShake from './ChannelHandShake'
 import startWith from 'licia/startWith'
+import { execFile } from 'node:child_process'
+import util from 'node:util'
+import toStr from 'licia/toStr'
 
 const HANDSHAKE_MESSAGE = 'OHOS HDC'
 
 export default class Connection extends Emitter {
   socket!: Socket
   options: ClientOptions
+  private triedStarting = false
   private ended = false
   constructor(options: ClientOptions) {
     super()
@@ -34,9 +38,19 @@ export default class Connection extends Emitter {
         this.ended = true
         this.socket = null
       })
-    }).then(() => {
-      return this
     })
+      .catch((e) => {
+        if (e.code === 'ECONNREFUSED' && !this.triedStarting) {
+          this.triedStarting = true
+          return this.startServer().then(() => {
+            return this.connect()
+          })
+        } else {
+          this.end()
+          throw e
+        }
+      })
+      .then(() => this)
   }
   end() {
     if (this.socket) {
@@ -131,5 +145,14 @@ export default class Connection extends Emitter {
       channelHandShake.connectKey = connectKey
     }
     await this.send(channelHandShake.serialize())
+  }
+  private async startServer() {
+    const port = this.options.port
+    return util.promisify(execFile)('hdc', ['start'], {
+      env: {
+        ...process.env,
+        OHOS_HDC_SERVER_PORT: toStr(port),
+      },
+    })
   }
 }

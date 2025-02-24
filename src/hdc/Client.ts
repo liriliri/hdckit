@@ -6,9 +6,11 @@ import Target from './Target'
 export default class Client {
   readonly options: ClientOptions
   constructor(
-    { host = '127.0.0.1', port = 8710 }: ClientOptions = { port: 5037 }
+    { host = '127.0.0.1', port = 8710, bin = 'hdc' }: ClientOptions = {
+      port: 5037,
+    }
   ) {
-    this.options = { host, port }
+    this.options = { host, port, bin }
   }
   connection(connectKey?: string) {
     const connection = new Connection(this.options)
