@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsc -w",
     "build": "tsc",
-    "format": "lsla prettier \"src/**/*.ts\" \"test/**/*.js\" --write"
+    "format": "lsla prettier \"src/**/*.ts\" \"test/**/*.js\" \"*.js\" --write",
+    "lint": "eslint \"src/**/*.ts\""
   },
   "keywords": [
     "hdc"
@@ -15,7 +16,11 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.14.8",
-    "typescript": "^5.7.3"
+    "eslint": "^9.21.0",
+    "eslint-config-prettier": "^10.0.1",
+    "globals": "^16.0.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.24.1"
   },
   "dependencies": {
     "licia": "^1.46.0"
