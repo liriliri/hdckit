@@ -2,6 +2,7 @@ import Client from './Client'
 import GetParametersCommand from './command/GetParametersCommand'
 import contain from 'licia/contain'
 import waitUntil from 'licia/waitUntil'
+import ShellCommand from './command/ShellCommand'
 
 export default class Target {
   readonly client: Client
@@ -21,6 +22,11 @@ export default class Target {
   getParameters() {
     return this.transport().then((transport) =>
       new GetParametersCommand(transport).execute()
+    )
+  }
+  shell(command: string) {
+    return this.transport().then((transport) =>
+      new ShellCommand(transport).execute(command)
     )
   }
   async waitForReady() {
