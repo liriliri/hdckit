@@ -1,6 +1,6 @@
 import Command from '../Command'
 
-export default class ListDevicesCommand extends Command<string[]> {
+export default class ListTargetsCommand extends Command<string[]> {
   async execute() {
     this.send('list targets')
     return this.connection.readValue().then((data) => {

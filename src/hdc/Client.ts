@@ -1,5 +1,5 @@
 import { ClientOptions } from '../types'
-import ListDevicesCommand from './command/ListDevicesCommand'
+import ListTargetsCommand from './command/ListTargetsCommand'
 import Connection from './Connection'
 import Target from './Target'
 
@@ -18,7 +18,7 @@ export default class Client {
   }
   listTargets() {
     return this.connection().then((conn) =>
-      new ListDevicesCommand(conn).execute()
+      new ListTargetsCommand(conn).execute()
     )
   }
   getTarget(connectKey: string) {
