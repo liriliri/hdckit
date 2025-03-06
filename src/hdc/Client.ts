@@ -2,6 +2,7 @@ import { ClientOptions } from '../types'
 import ListTargetsCommand from './command/ListTargetsCommand'
 import Connection from './Connection'
 import Target from './Target'
+import isStrBlank from 'licia/isStrBlank'
 
 export default class Client {
   readonly options: ClientOptions
@@ -22,6 +23,10 @@ export default class Client {
     )
   }
   getTarget(connectKey: string) {
+    if (isStrBlank(connectKey)) {
+      throw new Error('connectKey is required')
+    }
+
     return new Target(this, connectKey)
   }
 }
