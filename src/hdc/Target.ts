@@ -3,6 +3,7 @@ import GetParametersCommand from './command/GetParametersCommand'
 import contain from 'licia/contain'
 import waitUntil from 'licia/waitUntil'
 import ShellCommand from './command/ShellCommand'
+import singleton from 'licia/singleton'
 
 export default class Target {
   readonly client: Client
@@ -14,7 +15,7 @@ export default class Target {
   }
   async transport() {
     if (!this.ready) {
-      await this.waitForReady()
+      await waitUntil(this.checkReady, 10000, 1000)
     }
 
     return this.client.connection(this.connectKey)
@@ -29,21 +30,15 @@ export default class Target {
       new ShellCommand(transport).execute(command)
     )
   }
-  async waitForReady() {
-    await waitUntil(
-      async () => {
-        const transport = await this.client.connection(this.connectKey)
-        transport.send(Buffer.from('shell echo ready\n'))
-        const data = await transport.readAll()
-        if (!contain(data.toString(), 'E000004')) {
-          return true
-        }
+  private checkReady = singleton(async () => {
+    const transport = await this.client.connection(this.connectKey)
+    transport.send(Buffer.from('shell echo ready\n'))
+    const data = await transport.readAll()
+    if (!contain(data.toString(), 'E000004')) {
+      this.ready = true
+      return true
+    }
 
-        return false
-      },
-      10000,
-      1000
-    )
-    this.ready = true
-  }
+    return false
+  })
 }
