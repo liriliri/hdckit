@@ -43,7 +43,7 @@ export default class Connection extends Emitter {
         if (e.code === 'ECONNREFUSED' && !this.triedStarting) {
           this.triedStarting = true
           return this.startServer().then(() => {
-            return this.connect()
+            return this.connect(connectKey)
           })
         } else {
           this.end()
@@ -147,8 +147,8 @@ export default class Connection extends Emitter {
     await this.send(channelHandShake.serialize())
   }
   private async startServer() {
-    const port = this.options.port
-    return util.promisify(execFile)('hdc', ['start'], {
+    const { port, bin } = this.options
+    return util.promisify(execFile)(bin, ['start'], {
       env: {
         ...process.env,
         OHOS_HDC_SERVER_PORT: toStr(port),
