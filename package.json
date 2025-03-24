@@ -27,6 +27,6 @@
     "typescript-eslint": "^8.24.1"
   },
   "dependencies": {
-    "licia": "^1.46.0"
+    "licia": "^1.47.0"
   }
 }

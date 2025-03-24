@@ -1,16 +1,28 @@
+import Struct from './Struct'
+
+const MAX_CONNECTKEY_SIZE = 32
+
+const ChannelHandShakeChannelIdStruct = new Struct({
+  banner: 'buffer:12',
+  channelId: 'uint32',
+})
+
+const ChannelHandShakeConnectKeyStruct = new Struct({
+  banner: 'buffer:12',
+  connectKey: `string:${MAX_CONNECTKEY_SIZE}`,
+})
+
 export default class ChannelHandShake {
   banner: Buffer
-  channelId: number
-  connectKey: string = ''
+  connectKey = ''
   constructor(buf: Buffer) {
-    this.banner = buf.subarray(0, 12)
-    this.channelId = buf.readUInt32BE(12)
+    const { banner } = ChannelHandShakeChannelIdStruct.unpack(buf)
+    this.banner = banner
   }
   serialize() {
-    const connectKey = Buffer.alloc(32)
-    if (this.connectKey) {
-      connectKey.write(this.connectKey)
-    }
-    return Buffer.concat([this.banner, connectKey])
+    return ChannelHandShakeConnectKeyStruct.pack({
+      banner: this.banner,
+      connectKey: this.connectKey,
+    })
   }
 }
