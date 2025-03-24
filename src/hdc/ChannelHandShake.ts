@@ -15,7 +15,7 @@ const ChannelHandShakeConnectKeyStruct = new Struct({
 export default class ChannelHandShake {
   banner: Buffer
   connectKey = ''
-  constructor(buf: Buffer) {
+  deserialize(buf: Buffer) {
     const { banner } = ChannelHandShakeChannelIdStruct.unpack(buf)
     this.banner = banner
   }

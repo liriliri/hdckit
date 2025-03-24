@@ -1,0 +1,7 @@
+export enum HdcCommand {
+  CMD_FILE_INIT = 3000,
+  CMD_FILE_CHECK = 3001,
+  CMD_FILE_BEGIN = 3002,
+  CMD_FILE_DATA = 3003,
+  CMD_FILE_FINISH = 3004,
+}

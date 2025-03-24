@@ -135,7 +135,8 @@ export default class Connection extends Emitter {
   }
   private async handshake(connectKey?: string) {
     const data = await this.readValue()
-    const channelHandShake = new ChannelHandShake(data)
+    const channelHandShake = new ChannelHandShake()
+    channelHandShake.deserialize(data)
     if (
       !startWith(channelHandShake.banner.toString('utf8'), HANDSHAKE_MESSAGE)
     ) {
