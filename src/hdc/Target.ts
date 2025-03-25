@@ -33,16 +33,16 @@ export default class Target {
     )
   }
   sendFile(local: string, remote: string) {
-    new FileSendCommand(this.connectKey, this.client.options.bin).execute(
-      local,
-      remote
-    )
+    return new FileSendCommand(
+      this.connectKey,
+      this.client.options.bin
+    ).execute(local, remote)
   }
   recvFile(remote: string, local: string) {
-    new FileRecvCommand(this.connectKey, this.client.options.bin).execute(
-      remote,
-      local
-    )
+    return new FileRecvCommand(
+      this.connectKey,
+      this.client.options.bin
+    ).execute(remote, local)
   }
   private checkReady = singleton(async () => {
     const transport = await this.client.connection(this.connectKey)
