@@ -5,6 +5,7 @@ import waitUntil from 'licia/waitUntil'
 import ShellCommand from './command/ShellCommand'
 import singleton from 'licia/singleton'
 import FileSendCommand from './command/FileSendCommand'
+import FileRecvCommand from './command/FileRecvCommand'
 
 export default class Target {
   readonly client: Client
@@ -32,9 +33,16 @@ export default class Target {
     )
   }
   sendFile(local: string, remote: string) {
-    return this.transport().then((transport) => {
-      new FileSendCommand(transport).execute(local, remote)
-    })
+    new FileSendCommand(this.connectKey, this.client.options.bin).execute(
+      local,
+      remote
+    )
+  }
+  recvFile(remote: string, local: string) {
+    new FileRecvCommand(this.connectKey, this.client.options.bin).execute(
+      remote,
+      local
+    )
   }
   private checkReady = singleton(async () => {
     const transport = await this.client.connection(this.connectKey)
