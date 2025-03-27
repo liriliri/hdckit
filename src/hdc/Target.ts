@@ -6,6 +6,8 @@ import ShellCommand from './command/ShellCommand'
 import singleton from 'licia/singleton'
 import FileSendCommand from './command/FileSendCommand'
 import FileRecvCommand from './command/FileRecvCommand'
+import InstallCommand from './command/InstallCommand'
+import UninstallCommand from './command/UninstallCommand'
 
 export default class Target {
   readonly client: Client
@@ -43,6 +45,17 @@ export default class Target {
       this.connectKey,
       this.client.options.bin
     ).execute(remote, local)
+  }
+  install(hap: string) {
+    return new InstallCommand(this.connectKey, this.client.options.bin).execute(
+      hap
+    )
+  }
+  uninstall(bundleName: string) {
+    return new UninstallCommand(
+      this.connectKey,
+      this.client.options.bin
+    ).execute(bundleName)
   }
   private checkReady = singleton(async () => {
     const transport = await this.client.connection(this.connectKey)
