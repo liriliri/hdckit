@@ -5,7 +5,7 @@ export default class UninstallCommand extends ExecCommand<void> {
   async execute(bundleName: string) {
     const { stdout } = await this.run(['uninstall', bundleName])
     if (!contain(stdout, 'uninstall bundle successfully')) {
-      throw new Error('Uninstall package failed')
+      throw new Error('Uninstall bundle failed')
     }
   }
 }
