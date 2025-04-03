@@ -3,6 +3,7 @@ import ListTargetsCommand from './command/ListTargetsCommand'
 import Connection from './Connection'
 import Target from './Target'
 import isStrBlank from 'licia/isStrBlank'
+import { getLastPid } from './util'
 
 export default class Client {
   readonly options: ClientOptions
@@ -28,5 +29,14 @@ export default class Client {
     }
 
     return new Target(this, connectKey)
+  }
+  async kill() {
+    const pid = await getLastPid()
+    if (pid) {
+      try {
+        process.kill(pid, 'SIGKILL')
+        // eslint-disable-next-line
+      } catch (e) {}
+    }
   }
 }
