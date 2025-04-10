@@ -4,6 +4,7 @@ import Connection from './Connection'
 import Target from './Target'
 import isStrBlank from 'licia/isStrBlank'
 import { getLastPid } from './util'
+import TrackTargetsCommand from './command/TrackTargetsCommand'
 
 export default class Client {
   readonly options: ClientOptions
@@ -21,6 +22,11 @@ export default class Client {
   listTargets() {
     return this.connection().then((conn) =>
       new ListTargetsCommand(conn).execute()
+    )
+  }
+  trackTargets() {
+    return this.connection().then((conn) =>
+      new TrackTargetsCommand(conn).execute()
     )
   }
   getTarget(connectKey: string) {
