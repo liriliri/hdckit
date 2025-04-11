@@ -4,10 +4,8 @@ import contain from 'licia/contain'
 import waitUntil from 'licia/waitUntil'
 import ShellCommand from './command/ShellCommand'
 import singleton from 'licia/singleton'
-import FileSendCommand from './command/FileSendCommand'
-import FileRecvCommand from './command/FileRecvCommand'
-import InstallCommand from './command/InstallCommand'
-import UninstallCommand from './command/UninstallCommand'
+import { FileSendCommand, FileRecvCommand } from './command/file'
+import { InstallCommand, UninstallCommand } from './command/install'
 
 export default class Target {
   readonly client: Client

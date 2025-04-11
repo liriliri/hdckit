@@ -1,10 +1,9 @@
 import { ClientOptions } from '../types'
-import ListTargetsCommand from './command/ListTargetsCommand'
 import Connection from './Connection'
 import Target from './Target'
 import isStrBlank from 'licia/isStrBlank'
 import { getLastPid } from './util'
-import TrackTargetsCommand from './command/TrackTargetsCommand'
+import { ListTargetsCommand, TrackTargetsCommand } from './command/targets'
 
 export default class Client {
   readonly options: ClientOptions
