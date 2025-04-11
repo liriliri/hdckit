@@ -35,6 +35,15 @@ export function readPorts(result: string, reverse = false) {
 
   return map(lines, (line) => {
     const parts = line.split(/\s+/)
+
+    if (reverse) {
+      return {
+        target: parts[0],
+        local: parts[2],
+        remote: parts[1],
+      }
+    }
+
     return {
       target: parts[0],
       local: parts[1],
