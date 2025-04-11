@@ -4,6 +4,9 @@ import Target from './Target'
 import isStrBlank from 'licia/isStrBlank'
 import { getLastPid } from './util'
 import { ListTargetsCommand, TrackTargetsCommand } from './command/targets'
+import { ListForwardsCommand, IForward } from './command/forward'
+import Tracker from './Tracker'
+import { ListReversesCommand } from './command/reverse'
 
 export default class Client {
   readonly options: ClientOptions
@@ -18,12 +21,12 @@ export default class Client {
     const connection = new Connection(this.options)
     return connection.connect(connectKey)
   }
-  listTargets() {
+  listTargets(): Promise<string[]> {
     return this.connection().then((conn) =>
       new ListTargetsCommand(conn).execute()
     )
   }
-  trackTargets() {
+  trackTargets(): Promise<Tracker> {
     return this.connection().then((conn) =>
       new TrackTargetsCommand(conn).execute()
     )
@@ -34,6 +37,16 @@ export default class Client {
     }
 
     return new Target(this, connectKey)
+  }
+  listForwards(): Promise<IForward[]> {
+    return this.connection().then((conn) =>
+      new ListForwardsCommand(conn).execute()
+    )
+  }
+  listReverses(): Promise<IForward[]> {
+    return this.connection().then((conn) =>
+      new ListReversesCommand(conn).execute()
+    )
   }
   async kill() {
     const pid = await getLastPid()

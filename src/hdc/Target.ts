@@ -4,8 +4,11 @@ import contain from 'licia/contain'
 import waitUntil from 'licia/waitUntil'
 import ShellCommand from './command/ShellCommand'
 import singleton from 'licia/singleton'
+import filter from 'licia/filter'
 import { FileSendCommand, FileRecvCommand } from './command/file'
 import { InstallCommand, UninstallCommand } from './command/install'
+import { ForwardPortCommand, RemoveForwardPortCommand } from './command/forward'
+import { ReversePortCommand } from './command/reverse'
 
 export default class Target {
   readonly client: Client
@@ -54,6 +57,34 @@ export default class Target {
       this.connectKey,
       this.client.options.bin
     ).execute(bundleName)
+  }
+  forward(local: string, remote: string) {
+    return this.transport().then((transport) =>
+      new ForwardPortCommand(transport).execute(local, remote)
+    )
+  }
+  async listForwards() {
+    const forwards = await this.client.listForwards()
+    return filter(forwards, (forward) => forward.target === this.connectKey)
+  }
+  removeForward(local: string, remote: string) {
+    return this.transport().then((transport) =>
+      new RemoveForwardPortCommand(transport).execute(local, remote)
+    )
+  }
+  reverse(remote: string, local: string) {
+    return this.transport().then((transport) =>
+      new ReversePortCommand(transport).execute(remote, local)
+    )
+  }
+  async listReverses() {
+    const reverses = await this.client.listReverses()
+    return filter(reverses, (reverse) => reverse.target === this.connectKey)
+  }
+  removeReverse(remote: string, local: string) {
+    return this.transport().then((transport) =>
+      new RemoveForwardPortCommand(transport).execute(remote, local)
+    )
   }
   private checkReady = singleton(async () => {
     const transport = await this.client.connection(this.connectKey)
