@@ -4,7 +4,8 @@
   "description": "A pure Node.js client for the OpenHarmony Device Connector",
   "main": "dist/index.js",
   "files": [
-    "dist"
+    "dist",
+    "uitestkit_sdk/*.so"
   ],
   "scripts": {
     "ci": "npm run lint && npm run build",
