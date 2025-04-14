@@ -9,6 +9,7 @@ import { FileSendCommand, FileRecvCommand } from './command/file'
 import { InstallCommand, UninstallCommand } from './command/install'
 import { ForwardPortCommand, RemoveForwardPortCommand } from './command/forward'
 import { ReversePortCommand } from './command/reverse'
+import UiDriver from './UiDriver'
 
 export default class Target {
   readonly client: Client
@@ -85,6 +86,11 @@ export default class Target {
     return this.transport().then((transport) =>
       new RemoveForwardPortCommand(transport).execute(remote, local)
     )
+  }
+  async createUiDriver(sdkPath: string) {
+    const uiDriver = new UiDriver(this)
+    await uiDriver.start(sdkPath)
+    return uiDriver
   }
   private checkReady = singleton(async () => {
     const transport = await this.client.connection(this.connectKey)
