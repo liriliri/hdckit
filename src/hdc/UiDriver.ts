@@ -199,9 +199,9 @@ class Connection {
     const sessionId = strHash(now() + message)
     const sessionIdBuf = Buffer.alloc(4)
     sessionIdBuf.writeUInt32BE(sessionId, 0)
-    this.sendRawMessage(sessionIdBuf, Buffer.from(message))
     return new Promise((resolve) => {
       this.resolves.set(sessionId, resolve)
+      this.sendRawMessage(sessionIdBuf, Buffer.from(message))
     })
   }
   sendRawMessage(sessonId: Buffer, message: Buffer) {
