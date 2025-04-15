@@ -87,10 +87,8 @@ export default class Target {
       new RemoveForwardPortCommand(transport).execute(remote, local)
     )
   }
-  async createUiDriver(sdkPath: string) {
-    const uiDriver = new UiDriver(this)
-    await uiDriver.start(sdkPath)
-    return uiDriver
+  async createUiDriver(sdkPath: string, sdkVersion: string) {
+    return new UiDriver(this, sdkPath, sdkVersion)
   }
   private checkReady = singleton(async () => {
     const transport = await this.client.connection(this.connectKey)
