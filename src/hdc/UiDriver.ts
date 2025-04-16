@@ -92,6 +92,15 @@ export default class UiDriver extends Emitter {
   getDisplaySize() {
     return this.send('CtrlCmd', 'getDisplaySize').then(({ result }) => result)
   }
+  async touchDown(x: number, y: number) {
+    await this.send('Gestures', 'touchDown', { x, y })
+  }
+  async touchMove(x: number, y: number) {
+    await this.send('Gestures', 'touchMove', { x, y })
+  }
+  async touchUp(x: number, y: number) {
+    await this.send('Gestures', 'touchUp', { x, y })
+  }
   private async send(
     method: string,
     api: string,
