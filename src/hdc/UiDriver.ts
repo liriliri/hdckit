@@ -7,6 +7,7 @@ import toNum from 'licia/toNum'
 import getPort from 'licia/getPort'
 import strHash from 'licia/strHash'
 import now from 'licia/now'
+import sleep from 'licia/sleep'
 import net, { Socket } from 'node:net'
 import Emitter from 'licia/Emitter'
 
@@ -23,6 +24,7 @@ export default class UiDriver extends Emitter {
   private port: number = 0
   private sdkVersion = SDK_VERSION
   private sdkPath = SDK_PATH
+  private triedStarting = false
   private captureScreenCallback: (sessionId: number, message: Buffer) => void =
     null
   constructor(target: Target, sdkPath?: string, sdkVersion?: string) {
@@ -49,6 +51,7 @@ export default class UiDriver extends Emitter {
 
       if (!uiTestPid) {
         await this.shell('uitest start-daemon singleness')
+        await sleep(2000)
       }
     }
 
@@ -65,14 +68,7 @@ export default class UiDriver extends Emitter {
     }
   }
   async startCaptureScreen(callback: (message: Buffer) => void) {
-    const { sessionId } = await this.send({
-      module: 'com.ohos.devicetest.hypiumApiHelper',
-      method: 'Captures',
-      params: {
-        api: 'startCaptureScreen',
-        args: {},
-      },
-    })
+    const { sessionId } = await this.send('Captures', 'startCaptureScreen')
     if (this.captureScreenCallback) {
       throw new Error('Capture screen is already started')
     }
@@ -84,30 +80,23 @@ export default class UiDriver extends Emitter {
     this.on('message', this.captureScreenCallback)
   }
   async stopCaptureScreen() {
-    await this.send({
-      module: 'com.ohos.devicetest.hypiumApiHelper',
-      method: 'Captures',
-      params: {
-        api: 'stopCaptureScreen',
-        args: {},
-      },
-    })
+    await this.send('Captures', 'stopCaptureScreen')
     if (this.captureScreenCallback) {
       this.off('message', this.captureScreenCallback)
       this.captureScreenCallback = null
     }
   }
   captureLayout() {
-    return this.send({
-      module: 'com.ohos.devicetest.hypiumApiHelper',
-      method: 'Captures',
-      params: {
-        api: 'captureLayout',
-        args: {},
-      },
-    }).then(({ message }) => message.result)
+    return this.send('Captures', 'captureLayout').then(({ result }) => result)
   }
-  private async send(message: any): Promise<any> {
+  getDisplaySize() {
+    return this.send('CtrlCmd', 'getDisplaySize').then(({ result }) => result)
+  }
+  private async send(
+    method: string,
+    api: string,
+    args: any = {}
+  ): Promise<any> {
     if (!this.connection) {
       await this.start()
       this.connection = new Connection()
@@ -116,8 +105,37 @@ export default class UiDriver extends Emitter {
       })
       await this.connection.connect(this.port)
       this.connection.socket.on('end', () => {
-        this.stop()
+        this.connection = null
       })
+      try {
+        await this.connection.sendMessage(
+          {
+            module: 'com.ohos.devicetest.hypiumApiHelper',
+            method: 'CtrlCmd',
+            params: {
+              api: 'getDisplaySize',
+              args: {},
+            },
+          },
+          1000
+        )
+      } catch (e) {
+        if (e.message === 'timeout' && !this.triedStarting) {
+          this.triedStarting = true
+          await this.stop()
+          return await this.send(method, api, args)
+        } else {
+          throw e
+        }
+      }
+    }
+    const message = {
+      module: 'com.ohos.devicetest.hypiumApiHelper',
+      method,
+      params: {
+        api,
+        args,
+      },
     }
     return this.connection.sendMessage(message)
   }
@@ -169,6 +187,7 @@ class Connection {
   private onMessage: OnMessage
   private ended = false
   private resolves: Map<number, (value?: any) => void> = new Map()
+  private rejects: Map<number, (reason?: any) => void> = new Map()
   private buffer: Buffer = Buffer.alloc(0)
   connect(port: number) {
     const socket = net.connect({
@@ -194,14 +213,22 @@ class Connection {
   setOnMessage(onMessage: OnMessage) {
     this.onMessage = onMessage
   }
-  sendMessage(message: any) {
+  sendMessage(message: any, timeout = 0) {
     message = JSON.stringify(message)
     const sessionId = strHash(now() + message)
     const sessionIdBuf = Buffer.alloc(4)
     sessionIdBuf.writeUInt32BE(sessionId, 0)
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       this.resolves.set(sessionId, resolve)
+      this.rejects.set(sessionId, reject)
       this.sendRawMessage(sessionIdBuf, Buffer.from(message))
+      if (timeout) {
+        setTimeout(() => {
+          reject(new Error('timeout'))
+          this.resolves.delete(sessionId)
+          this.rejects.delete(sessionId)
+        }, timeout)
+      }
     })
   }
   sendRawMessage(sessonId: Buffer, message: Buffer) {
@@ -257,9 +284,16 @@ class Connection {
       }
 
       const resolve = this.resolves.get(sessionId)
+      const reject = this.rejects.get(sessionId)
       if (resolve) {
-        resolve({ sessionId, message: JSON.parse(message.toString()) })
+        const result = JSON.parse(message.toString())
+        if (result.exception) {
+          reject(new Error(result.exception))
+        } else {
+          resolve({ sessionId, result: result.result })
+        }
         this.resolves.delete(sessionId)
+        this.rejects.delete(sessionId)
       } else if (this.onMessage) {
         this.onMessage(sessionId, message)
       }

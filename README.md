@@ -7,7 +7,7 @@
 [npm-url]: https://npmjs.org/package/hdckit
 [license-image]: https://img.shields.io/npm/l/hdckit?style=flat-square
 
-基于 Node.js 实现的鸿蒙 hdc 客户端。
+基于 Node.js 实现的鸿蒙 HDC 客户端。
 
 ## 安装
 
