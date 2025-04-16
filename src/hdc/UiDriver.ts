@@ -286,11 +286,16 @@ class Connection {
       const resolve = this.resolves.get(sessionId)
       const reject = this.rejects.get(sessionId)
       if (resolve) {
-        const result = JSON.parse(message.toString())
-        if (result.exception) {
-          reject(new Error(result.exception))
-        } else {
-          resolve({ sessionId, result: result.result })
+        try {
+          const result = JSON.parse(message.toString())
+          if (result.exception) {
+            reject(new Error(result.exception))
+          } else {
+            resolve({ sessionId, result: result.result })
+          }
+          // eslint-disable-next-line
+        } catch (e) {
+          resolve({ sessionId, result: message })
         }
         this.resolves.delete(sessionId)
         this.rejects.delete(sessionId)
