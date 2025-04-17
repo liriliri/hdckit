@@ -43,6 +43,8 @@ export default class UiDriver extends Emitter {
     let uiTestPid = trim(await this.shell('pidof uitest'))
     const shouldUpdateSdk = await this.shouldUpdateSdk()
     if (!uiTestPid || shouldUpdateSdk) {
+      await this.shell('param set persist.ace.testmode.enabled 1')
+
       if (shouldUpdateSdk) {
         if (uiTestPid) {
           await this.shell(`kill -9 ${uiTestPid}`)
