@@ -10,6 +10,7 @@ import now from 'licia/now'
 import sleep from 'licia/sleep'
 import net, { Socket } from 'node:net'
 import Emitter from 'licia/Emitter'
+import singleton from 'licia/singleton'
 
 const SDK_PATH = path.join(
   __dirname,
@@ -21,6 +22,7 @@ const AGENT_PATH = '/data/local/tmp/agent.so'
 export default class UiDriver extends Emitter {
   private readonly target: Target
   private connection: Connection = null
+  private driverName: string = ''
   private port: number = 0
   private sdkVersion = SDK_VERSION
   private sdkPath = SDK_PATH
@@ -67,8 +69,16 @@ export default class UiDriver extends Emitter {
       await this.shell(`kill -9 ${uiTestPid}`)
     }
   }
-  async startCaptureScreen(callback: (message: Buffer) => void) {
-    const { sessionId } = await this.send('Captures', 'startCaptureScreen')
+  async startCaptureScreen(
+    callback: (message: Buffer) => void,
+    options: { scale: number } = { scale: 1 }
+  ) {
+    if (options.scale >= 1 || options.scale <= 0) {
+      delete options.scale
+    }
+    const { sessionId } = await this.send('Captures', 'startCaptureScreen', {
+      options,
+    })
     if (this.captureScreenCallback) {
       throw new Error('Capture screen is already started')
     }
@@ -101,53 +111,79 @@ export default class UiDriver extends Emitter {
   async touchUp(x: number, y: number) {
     await this.send('Gestures', 'touchUp', { x, y })
   }
-  private async send(
+  async inputText(text: string, x = 0, y = 0) {
+    await this.send('callHypiumApi', 'inputText', [{ x, y }, text])
+  }
+  private send = async (
     method: string,
     api: string,
     args: any = {}
-  ): Promise<any> {
-    if (!this.connection) {
-      await this.start()
-      this.connection = new Connection()
-      this.connection.setOnMessage((sessionId, message) => {
-        this.emit('message', sessionId, message)
-      })
-      await this.connection.connect(this.port)
-      this.connection.socket.on('end', () => {
-        this.connection = null
-      })
-      try {
-        await this.connection.sendMessage(
-          {
-            module: 'com.ohos.devicetest.hypiumApiHelper',
-            method: 'CtrlCmd',
-            params: {
-              api: 'getDisplaySize',
-              args: {},
-            },
+  ): Promise<any> => {
+    try {
+      const connection = await this.getConnection()
+      const module = 'com.ohos.devicetest.hypiumApiHelper'
+      if (method === 'callHypiumApi') {
+        return connection.sendMessage({
+          module,
+          method,
+          params: {
+            api: `Driver.${api}`,
+            this: this.driverName,
+            args,
+            message_type: 'hypium',
           },
-          1000
-        )
-      } catch (e) {
-        if (e.message === 'timeout' && !this.triedStarting) {
-          this.triedStarting = true
-          await this.stop()
-          return await this.send(method, api, args)
-        } else {
-          throw e
-        }
+        })
+      }
+      return connection.sendMessage({
+        module,
+        method,
+        params: {
+          api,
+          args,
+        },
+      })
+    } catch (e) {
+      if (e.message === 'timeout' && !this.triedStarting) {
+        this.triedStarting = true
+        await this.stop()
+        return await this.send(method, api, args)
+      } else {
+        throw e
       }
     }
-    const message = {
-      module: 'com.ohos.devicetest.hypiumApiHelper',
-      method,
-      params: {
-        api,
-        args,
-      },
-    }
-    return this.connection.sendMessage(message)
   }
+  private getConnection = singleton(async (): Promise<Connection> => {
+    let { connection } = this
+
+    if (!connection) {
+      await this.start()
+      connection = new Connection()
+      connection.setOnMessage((sessionId, message) => {
+        this.emit('message', sessionId, message)
+      })
+      await connection.connect(this.port)
+      connection.socket.on('end', () => {
+        this.connection = null
+      })
+      const { result } = await connection.sendMessage(
+        {
+          module: 'com.ohos.devicetest.hypiumApiHelper',
+          method: 'callHypiumApi',
+          params: {
+            api: 'Driver.create',
+            this: null,
+            args: [],
+            message_type: 'hypium',
+          },
+        },
+        1000
+      )
+      this.driverName = result
+      this.connection = connection
+    }
+
+    return connection
+  })
   private async forwardTcp(p: number) {
     const { target } = this
     const remote = `tcp:${p}`
@@ -222,7 +258,10 @@ class Connection {
   setOnMessage(onMessage: OnMessage) {
     this.onMessage = onMessage
   }
-  sendMessage(message: any, timeout = 0) {
+  sendMessage(
+    message: any,
+    timeout = 0
+  ): Promise<{ sessionId: number; result: any }> {
     message = JSON.stringify(message)
     const sessionId = strHash(now() + message)
     const sessionIdBuf = Buffer.alloc(4)
@@ -298,7 +337,7 @@ class Connection {
         try {
           const result = JSON.parse(message.toString())
           if (result.exception) {
-            reject(new Error(result.exception))
+            reject(new Error(result.exception.message))
           } else {
             resolve({ sessionId, result: result.result })
           }
