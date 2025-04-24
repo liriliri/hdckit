@@ -10,6 +10,7 @@ import { InstallCommand, UninstallCommand } from './command/install'
 import { ForwardPortCommand, RemoveForwardPortCommand } from './command/forward'
 import { ReversePortCommand } from './command/reverse'
 import UiDriver from './UiDriver'
+import { HilogCommand } from './command/HilogCommand'
 
 export default class Target {
   readonly client: Client
@@ -89,6 +90,11 @@ export default class Target {
   }
   async createUiDriver(sdkPath?: string, sdkVersion?: string) {
     return new UiDriver(this, sdkPath, sdkVersion)
+  }
+  async openHilog() {
+    return this.transport().then((transport) =>
+      new HilogCommand(transport).execute()
+    )
   }
   private checkReady = singleton(async () => {
     const transport = await this.client.connection(this.connectKey)
