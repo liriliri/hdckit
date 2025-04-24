@@ -91,7 +91,11 @@ export default class Target {
   async createUiDriver(sdkPath?: string, sdkVersion?: string) {
     return new UiDriver(this, sdkPath, sdkVersion)
   }
-  async openHilog() {
+  async openHilog(options: { clear?: boolean } = {}) {
+    if (options.clear) {
+      const connection = await this.shell('hilog -r')
+      await connection.readAll()
+    }
     return this.transport().then((transport) =>
       new HilogCommand(transport).execute()
     )

@@ -1,6 +1,6 @@
 {
   "name": "hdckit",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "description": "A pure Node.js client for the OpenHarmony Device Connector",
   "main": "dist/index.js",
   "files": [
