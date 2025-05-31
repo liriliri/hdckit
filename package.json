@@ -14,6 +14,10 @@
     "format": "lsla prettier \"src/**/*.ts\" \"test/**/*.js\" \"*.js\" --write",
     "lint": "eslint \"src/**/*.ts\""
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/liriliri/hdckit.git"
+  },
   "keywords": [
     "hdc"
   ],
